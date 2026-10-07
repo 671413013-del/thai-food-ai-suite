@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบอาหารไทยอัจฉริยะ - AIForThai & ThaiLLM</title>
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+        }
+        .dragover {
+            border-color: #ea580c !important;
+            background-color: #fff7ed !important;
+        }
+        .markdown-body ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body ol {
+            list-style-type: decimal;
+            padding-left: 1.25rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .markdown-body p {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white shadow-md shadow-orange-500/30 text-xl font-bold">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                        Thai Food AI Suite
+                    </h1>
+                    <p class="text-xs text-slate-500">รู้จำอาหารไทย (AIForThai) • โภชนาการ (ThaiLLM) • สังเคราะห์เสียง (วาจา)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ระบบพร้อมใช้งาน
+                </span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (3 Tabs) -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 border-t border-slate-100 flex gap-1 sm:gap-2 overflow-x-auto">
+            <button id="tab-btn-recognition" class="py-3 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-colors whitespace-nowrap">
+                <i class="fa-solid fa-camera-retro"></i>
+                <span>แท็บ 1: รู้จำอาหารไทย (AIForThai)</span>
+            </button>
+            <button id="tab-btn-nutrition" class="py-3 px-3 sm:px-4 font-medium text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors whitespace-nowrap">
+                <i class="fa-solid fa-heart-pulse text-emerald-500"></i>
+                <span>แท็บ 2: ที่ปรึกษาโภชนาการ (ThaiLLM)</span>
+            </button>
+            <button id="tab-btn-vaja" class="py-3 px-3 sm:px-4 font-medium text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors whitespace-nowrap">
+                <i class="fa-solid fa-volume-high text-blue-500"></i>
+                <span>แท็บ 3: เสียงพูดภาษาไทย "วาจา" (VAJA)</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 py-6 w-full">
+
+        <!-- ================= TAB 1: Thai Food Recognition (AIForThai) ================= -->
+        <div id="tab-content-recognition" class="space-y-6">
+            
+            <div class="text-center">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+                    รู้จำอาหารไทยจากรูปภาพ
+                </h2>
+                <p class="mt-1 text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+                    เชื่อมต่อ AIForThai Thai Food Recognition API วิเคราะห์ความน่าจะเป็นของเมนู 10 อันดับแรก
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Left: Upload & Presets -->
+                <div class="lg:col-span-6 space-y-4">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                        <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-regular fa-image text-orange-500"></i> เลือกรูปภาพอาหาร
+                        </h3>
+
+                        <!-- Drag & Drop Zone -->
+                        <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center cursor-pointer transition-all hover:border-orange-400 bg-slate-50/60 relative group min-h-[220px] flex items-center justify-center">
+                            <input type="file" id="file-input" accept="image/*" class="hidden">
+                            
+                            <div id="upload-placeholder" class="space-y-2.5">
+                                <div class="w-14 h-14 rounded-full bg-orange-100 text-orange-600 mx-auto flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-700">คลิกหรือลากวางรูปภาพที่นี่</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">รองรับ JPG, PNG, WEBP</p>
+                                </div>
+                            </div>
+
+                            <div id="preview-container" class="hidden w-full relative">
+                                <img id="image-preview" src="" alt="Food Preview" class="w-full max-h-72 object-contain rounded-lg mx-auto shadow-inner bg-slate-900/5">
+                                <button id="btn-remove-image" type="button" class="absolute top-2 right-2 bg-slate-900/70 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="mt-3.5 flex flex-wrap items-center gap-2.5">
+                            <button id="btn-browse" type="button" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-folder-open"></i> เลือกไฟล์
+                            </button>
+                            <button id="btn-camera" type="button" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-camera"></i> ถ่ายรูป
+                            </button>
+                        </div>
+
+                        <!-- Analyze Button -->
+                        <button id="btn-analyze" disabled class="w-full mt-3.5 py-3 px-6 rounded-xl font-semibold text-white bg-slate-300 cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>เริ่มวิเคราะห์อาหารไทย</span>
+                        </button>
+                    </div>
+
+                    <!-- Presets -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> ทดลองรูปภาพตัวอย่าง
+                        </p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button class="sample-btn group p-1.5 rounded-xl border border-slate-200 hover:border-orange-500 transition-all text-left bg-slate-50 hover:bg-orange-50/50"
+                                    data-url="https://images.unsplash.com/photo-1559314809-0d155014e29e?w=500&q=80" data-name="ผัดไทย">
+                                <img src="https://images.unsplash.com/photo-1559314809-0d155014e29e?w=160&q=80" alt="ผัดไทย" class="w-full h-14 object-cover rounded-lg">
+                                <span class="block text-[11px] font-medium text-slate-600 mt-1 truncate group-hover:text-orange-600">ผัดไทย</span>
+                            </button>
+                            <button class="sample-btn group p-1.5 rounded-xl border border-slate-200 hover:border-orange-500 transition-all text-left bg-slate-50 hover:bg-orange-50/50"
+                                    data-url="https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=500&q=80" data-name="ต้มยำกุ้ง">
+                                <img src="https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=160&q=80" alt="ต้มยำกุ้ง" class="w-full h-14 object-cover rounded-lg">
+                                <span class="block text-[11px] font-medium text-slate-600 mt-1 truncate group-hover:text-orange-600">ต้มยำกุ้ง</span>
+                            </button>
+                            <button class="sample-btn group p-1.5 rounded-xl border border-slate-200 hover:border-orange-500 transition-all text-left bg-slate-50 hover:bg-orange-50/50"
+                                    data-url="https://images.unsplash.com/photo-1562967914-608f82629710?w=500&q=80" data-name="ไก่ทอด">
+                                <img src="https://images.unsplash.com/photo-1562967914-608f82629710?w=160&q=80" alt="ไก่ทอด" class="w-full h-14 object-cover rounded-lg">
+                                <span class="block text-[11px] font-medium text-slate-600 mt-1 truncate group-hover:text-orange-600">ไก่ทอด</span>
+                            </button>
+                            <button class="sample-btn group p-1.5 rounded-xl border border-slate-200 hover:border-orange-500 transition-all text-left bg-slate-50 hover:bg-orange-50/50"
+                                    data-url="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=500&q=80" data-name="ส้มตำ">
+                                <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=160&q=80" alt="ส้มตำ" class="w-full h-14 object-cover rounded-lg">
+                                <span class="block text-[11px] font-medium text-slate-600 mt-1 truncate group-hover:text-orange-600">ส้มตำ</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- API Criteria -->
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-xs text-slate-500 space-y-1.5">
+                        <div class="font-semibold text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info text-blue-500"></i> เงื่อนไขคำตอบจาก AIForThai:
+                        </div>
+                        <ul class="list-disc pl-4 space-y-0.5">
+                            <li>ความน่าจะเป็นต่ำกว่า <strong>0.8</strong> มีคำว่า <span class="text-amber-600 font-medium">"(น่าจะ)"</span></li>
+                            <li>ความน่าจะเป็นต่ำกว่า <strong>0.1</strong> มีคำว่า <span class="text-red-600 font-medium">"(เดาว่า)"</span></li>
+                            <li>ลำดับ <strong>Rank 0 หรือ 1</strong> คือผลลัพธ์ที่เป็นไปได้มากที่สุด</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right: Results -->
+                <div class="lg:col-span-6 space-y-4">
+                    
+                    <!-- Loading -->
+                    <div id="state-loading" class="hidden bg-white rounded-2xl p-10 shadow-sm border border-slate-200 text-center">
+                        <div class="w-14 h-14 rounded-full border-4 border-orange-100 border-t-orange-500 animate-spin mx-auto"></div>
+                        <h4 class="mt-3 text-sm font-semibold text-slate-800">กำลังวิเคราะห์ภาพอาหาร...</h4>
+                        <p class="text-xs text-slate-400 mt-1">ส่งข้อมูลไปยัง AIForThai Thai Food Recognition API</p>
+                    </div>
+
+                    <!-- Empty -->
+                    <div id="state-empty" class="bg-white rounded-2xl p-12 shadow-sm border border-slate-200 text-center text-slate-400">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-100 mx-auto flex items-center justify-center text-2xl text-slate-300 mb-3">
+                            <i class="fa-solid fa-bowl-rice"></i>
+                        </div>
+                        <h4 class="text-sm font-semibold text-slate-600">ยังไม่มีผลการวิเคราะห์</h4>
+                        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">เลือกรูปภาพอาหารไทยด้านซ้าย แล้วกดปุ่มเริ่มวิเคราะห์</p>
+                    </div>
+
+                    <!-- Error -->
+                    <div id="state-error" class="hidden bg-red-50 border border-red-200 rounded-2xl p-4 text-red-700">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-circle-exclamation text-red-500 text-base mt-0.5"></i>
+                            <div>
+                                <h4 class="font-semibold text-xs">เกิดข้อผิดพลาดในการวิเคราะห์</h4>
+                                <p id="error-message" class="text-xs mt-0.5 text-red-600"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="state-results" class="hidden space-y-4">
+                        
+                        <!-- Top Result Card -->
+                        <div class="bg-gradient-to-br from-white to-orange-50/50 rounded-2xl p-5 shadow-sm border border-orange-200/80 relative">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                    <i class="fa-solid fa-crown text-amber-500"></i> ผลลัพธ์อันดับ 1
+                                </span>
+                                <div id="server-filename-tag" class="text-[10px] text-slate-400 font-mono"></div>
+                            </div>
+
+                            <div class="mt-2 flex justify-between items-end">
+                                <div>
+                                    <h3 id="top-food-name" class="text-2xl font-extrabold text-slate-800 tracking-tight">-</h3>
+                                    <p id="top-food-label" class="text-xs font-medium text-slate-500 mt-0.5">ป้ายกำกับ: -</p>
+                                </div>
+                                <button id="btn-goto-nutrition" type="button" class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                    <span>ดูโภชนาการ (ThaiLLM)</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </button>
+                            </div>
+
+                            <!-- Meter -->
+                            <div class="mt-4">
+                                <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                                    <span class="text-slate-600">ระดับความมั่นใจ (Confidence Score)</span>
+                                    <span id="top-score-text" class="text-orange-600 font-bold">0%</span>
+                                </div>
+                                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden shadow-inner">
+                                    <div id="top-score-bar" class="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full transition-all duration-700" style="width: 0%"></div>
+                                </div>
+                                <p id="top-confidence-desc" class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-check-circle text-emerald-500"></i> ความมั่นใจสูง
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Candidates -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-list-ol text-orange-500"></i> รายการคำตอบที่เป็นไปได้ทั้งหมด
+                                </h4>
+                                <span id="candidates-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">
+                                    0 รายการ
+                                </span>
+                            </div>
+                            <div id="candidates-list" class="space-y-2">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Raw JSON -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                            <div class="flex justify-between items-center">
+                                <button id="toggle-json" type="button" class="text-xs font-semibold text-slate-600 hover:text-orange-600 flex items-center gap-1.5 transition-colors">
+                                    <i class="fa-solid fa-code text-slate-400"></i> 
+                                    <span>ดูข้อมูลดิบ JSON Response</span>
+                                    <i id="toggle-json-icon" class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
+                                </button>
+                                <button id="btn-copy-json" type="button" class="text-[11px] text-slate-500 hover:text-orange-600 transition-colors flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> คัดลอก JSON
+                                </button>
+                            </div>
+                            <div id="json-viewer-container" class="hidden mt-3">
+                                <pre id="raw-json-output" class="bg-slate-900 text-emerald-400 p-3 rounded-xl text-xs font-mono overflow-x-auto max-h-56 leading-relaxed"></pre>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: Nutrition Advisor (ThaiLLM) ================= -->
+        <div id="tab-content-nutrition" class="hidden space-y-6">
+            
+            <div class="text-center">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+                    ที่ปรึกษาโภชนาการอาหารไทย
+                </h2>
+                <p class="mt-1 text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+                    ขับเคลื่อนโดย <strong class="text-emerald-600">ThaiLLM (OpenThaiGPT 8B Instruct)</strong> วิเคราะห์แคลอรี สารอาหาร และคำแนะนำสุขภาพ
+                </p>
+            </div>
+
+            <!-- Search & Input Card -->
+            <div class="max-w-3xl mx-auto bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <label class="block text-xs font-bold text-slate-700">ระบุชื่อเมนูอาหารไทยที่ต้องการวิเคราะห์</label>
+                
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-bowl-food"></i>
+                        </span>
+                        <input type="text" id="input-nutrition-food" placeholder="เช่น ผัดไทยกุ้งสด, ข้าวมันไก่, แกงเขียวหวาน, ต้มยำกุ้ง..." 
+                               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm">
+                    </div>
+                    <button id="btn-submit-nutrition" class="py-3 px-6 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>วิเคราะห์</span>
+                    </button>
+                </div>
+
+                <!-- Quick tags -->
+                <div class="flex items-center gap-2 flex-wrap pt-1">
+                    <span class="text-[11px] font-semibold text-slate-400">เมนูยอดนิยม:</span>
+                    <button class="quick-food-tag px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs transition-colors">ผัดไทย</button>
+                    <button class="quick-food-tag px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs transition-colors">ต้มยำกุ้ง</button>
+                    <button class="quick-food-tag px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs transition-colors">ข้าวมันไก่</button>
+                    <button class="quick-food-tag px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs transition-colors">ส้มตำไทย</button>
+                    <button class="quick-food-tag px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs transition-colors">กะเพราหมูกรอบไข่ดาว</button>
+                    <button class="quick-food-tag px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs transition-colors">แกงเขียวหวานไก่</button>
+                </div>
+            </div>
+
+            <!-- ThaiLLM Advisor Result Container -->
+            <div class="max-w-3xl mx-auto space-y-4">
+                
+                <div id="nutrition-loading" class="hidden bg-white rounded-2xl p-10 shadow-sm border border-slate-200 text-center">
+                    <div class="w-12 h-12 rounded-full border-4 border-emerald-100 border-t-emerald-500 animate-spin mx-auto"></div>
+                    <h4 class="mt-3 text-sm font-semibold text-slate-800">ThaiLLM กำลังประมวลผลโภชนาการ...</h4>
+                    <p class="text-xs text-slate-400 mt-0.5">ใช้โมเดล OpenThaiGPT 8B Instruct</p>
+                </div>
+
+                <div id="nutrition-empty" class="bg-white rounded-2xl p-12 shadow-sm border border-slate-200 text-center text-slate-400">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-50 mx-auto flex items-center justify-center text-2xl text-emerald-300 mb-3">
+                        <i class="fa-solid fa-notes-medical"></i>
+                    </div>
+                    <h4 class="text-sm font-semibold text-slate-600">ยังไม่ได้ระบุเมนูอาหาร</h4>
+                    <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">พิมพ์ชื่อเมนูอาหารด้านบน หรือกดส่งต่อมาจากผลการวิเคราะห์ใน แท็บ 1</p>
+                </div>
+
+                <div id="nutrition-error" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-4 text-rose-700 text-xs">
+                    เกิดข้อผิดพลาดในการเชื่อมต่อ ThaiLLM
+                </div>
+
+                <div id="nutrition-result-card" class="hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center text-base shadow-sm">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </span>
+                            <div>
+                                <h3 id="nutrition-result-title" class="text-lg font-bold text-slate-800">-</h3>
+                                <p class="text-[11px] text-slate-400">การวิเคราะห์โภชนาการและสารอาหาร</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-speak-nutrition" class="py-1.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-volume-high text-blue-600"></i>
+                                <span>ฟังเสียงพูด (VAJA)</span>
+                            </button>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ThaiLLM 8B
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="nutrition-markdown-body" class="markdown-body text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 3: Text-to-Speech (AIForThai VAJA) ================= -->
+        <div id="tab-content-vaja" class="hidden space-y-6">
+            
+            <div class="text-center">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+                    ระบบสังเคราะห์เสียงพูดภาษาไทย "วาจา" (VAJA)
+                </h2>
+                <p class="mt-1 text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+                    แปลงข้อความภาษาไทยเป็นเสียงพูดไฟล์ WAV อัตโนมัติ โดย AIForThai VAJA API
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto space-y-5">
+                
+                <!-- Input Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-regular fa-comment-dots text-blue-500"></i> ข้อความที่ต้องการสังเคราะห์เสียง
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] text-slate-400">เสียงผู้พูด (Speaker):</span>
+                            <select id="vaja-speaker" class="text-xs px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 font-medium text-slate-700 focus:outline-none focus:border-blue-500">
+                                <option value="nana" selected>nana (เสียงมาตรฐาน)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <textarea id="vaja-text-input" rows="4" placeholder="พิมพ์ข้อความภาษาไทยที่ต้องการให้อ่านออกเสียงที่นี่..." 
+                              class="w-full p-3.5 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm leading-relaxed"></textarea>
+
+                    <!-- Quick Sample Texts -->
+                    <div class="flex items-center gap-2 flex-wrap pt-1">
+                        <span class="text-[11px] font-semibold text-slate-400">ตัวอย่างข้อความ:</span>
+                        <button class="vaja-sample-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 text-xs transition-colors"
+                                data-text="สวัสดีครับ ยินดีต้อนรับสู่ระบบแนะนำอาหารไทยอัจฉริยะ">
+                            ทักทายต้อนรับ
+                        </button>
+                        <button class="vaja-sample-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 text-xs transition-colors"
+                                data-text="ผัดไทยกุ้งสด จานนี้ให้พลังงานประมาณ 350 กิโลแคลอรี ควรระวังปริมาณโซเดียมและทานคู่กับผักสดครับ">
+                            โภชนาการผัดไทย
+                        </button>
+                        <button class="vaja-sample-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 text-xs transition-colors"
+                                data-text="ต้มยำกุ้ง รสชาติเปรี้ยวเผ็ดกลมกล่อม มีสมุนไพร ข่า ตะไคร้ ใบมะกรูด ช่วยให้ร่างกายสดชื่น">
+                            แนะนำต้มยำกุ้ง
+                        </button>
+                    </div>
+
+                    <!-- Synthesize Button -->
+                    <button id="btn-synthesize-vaja" class="w-full py-3.5 px-6 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-volume-high"></i>
+                        <span>สังเคราะห์เสียงพูด (Synthesize Audio)</span>
+                    </button>
+                </div>
+
+                <!-- VAJA Loading State -->
+                <div id="vaja-loading" class="hidden bg-white rounded-2xl p-10 shadow-sm border border-slate-200 text-center">
+                    <div class="w-12 h-12 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin mx-auto"></div>
+                    <h4 class="mt-3 text-sm font-semibold text-slate-800">กำลังสังเคราะห์เสียงพูดภาษาไทย...</h4>
+                    <p class="text-xs text-slate-400 mt-0.5">เชื่อมต่อ AIForThai VAJA Text-to-Speech</p>
+                </div>
+
+                <!-- VAJA Error State -->
+                <div id="vaja-error" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-4 text-rose-700 text-xs">
+                    เกิดข้อผิดพลาดในการสังเคราะห์เสียง
+                </div>
+
+                <!-- VAJA Result Player Card -->
+                <div id="vaja-result-card" class="hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-400 text-white flex items-center justify-center text-base shadow-sm">
+                                <i class="fa-solid fa-music"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800">ไฟล์เสียงพูดสังเคราะห์ (WAV)</h3>
+                                <p id="vaja-speaker-label" class="text-[11px] text-slate-400">ผู้พูด: nana</p>
+                            </div>
+                        </div>
+                        <span id="vaja-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            msg: success
+                        </span>
+                    </div>
+
+                    <!-- Audio Player -->
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <audio id="vaja-audio-player" controls class="w-full sm:flex-1 h-10 outline-none"></audio>
+                        <a id="vaja-download-btn" href="#" download="vaja-speech.wav" target="_blank" 
+                           class="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                            <i class="fa-solid fa-download"></i> ดาวน์โหลดไฟล์ WAV
+                        </a>
+                    </div>
+
+                    <!-- Raw JSON Viewer for VAJA -->
+                    <div class="pt-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <button id="toggle-vaja-json" type="button" class="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-solid fa-code text-slate-400"></i>
+                                <span>ดูข้อมูลดิบ JSON Response (VAJA)</span>
+                                <i id="toggle-vaja-json-icon" class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
+                            </button>
+                            <button id="btn-copy-vaja-json" type="button" class="text-[11px] text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i> คัดลอก JSON
+                            </button>
+                        </div>
+                        <div id="vaja-json-container" class="hidden mt-2">
+                            <pre id="vaja-raw-json" class="bg-slate-900 text-cyan-300 p-3.5 rounded-xl text-xs font-mono overflow-x-auto max-h-48 leading-relaxed"></pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-orange-500"></i> ถ่ายรูปจากกล้อง
+                </h4>
+                <button id="btn-close-camera" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4 bg-black relative">
+                <video id="webcam-video" autoplay playsinline class="w-full rounded-lg max-h-80 object-cover"></video>
+                <canvas id="webcam-canvas" class="hidden"></canvas>
+            </div>
+            <div class="p-4 flex justify-end gap-3 bg-slate-50">
+                <button id="btn-cancel-camera" type="button" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-xl">ยกเลิก</button>
+                <button id="btn-snap-camera" type="button" class="px-5 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-xl flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-circle-dot"></i> จับภาพ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-5 text-center text-xs text-slate-400 mt-auto">
+        <p>AIForThai Thai Food Recognition & ThaiLLM Nutrition Advisor & AIForThai VAJA TTS</p>
+    </footer>
+
+    <!-- App Script -->
+    <script>
+        // Tab switching logic (3 Tabs)
+        const tabBtnRecognition = document.getElementById('tab-btn-recognition');
+        const tabBtnNutrition = document.getElementById('tab-btn-nutrition');
+        const tabBtnVaja = document.getElementById('tab-btn-vaja');
+
+        const tabContentRecognition = document.getElementById('tab-content-recognition');
+        const tabContentNutrition = document.getElementById('tab-content-nutrition');
+        const tabContentVaja = document.getElementById('tab-content-vaja');
+
+        function switchTab(tab) {
+            // Reset tabs
+            const inactiveClass = "py-3 px-3 sm:px-4 font-medium text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors whitespace-nowrap";
+            tabBtnRecognition.className = inactiveClass;
+            tabBtnNutrition.className = inactiveClass;
+            tabBtnVaja.className = inactiveClass;
+
+            tabContentRecognition.classList.add('hidden');
+            tabContentNutrition.classList.add('hidden');
+            tabContentVaja.classList.add('hidden');
+
+            if (tab === 'recognition') {
+                tabBtnRecognition.className = "py-3 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-colors whitespace-nowrap";
+                tabContentRecognition.classList.remove('hidden');
+            } else if (tab === 'nutrition') {
+                tabBtnNutrition.className = "py-3 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 border-emerald-500 text-emerald-600 flex items-center gap-2 transition-colors whitespace-nowrap";
+                tabContentNutrition.classList.remove('hidden');
+            } else if (tab === 'vaja') {
+                tabBtnVaja.className = "py-3 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 border-blue-500 text-blue-600 flex items-center gap-2 transition-colors whitespace-nowrap";
+                tabContentVaja.classList.remove('hidden');
+            }
+        }
+
+        tabBtnRecognition.addEventListener('click', () => switchTab('recognition'));
+        tabBtnNutrition.addEventListener('click', () => switchTab('nutrition'));
+        tabBtnVaja.addEventListener('click', () => switchTab('vaja'));
+
+        // ================= TAB 1: RECOGNITION SCRIPT =================
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const previewContainer = document.getElementById('preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const btnRemoveImage = document.getElementById('btn-remove-image');
+        const btnBrowse = document.getElementById('btn-browse');
+        const btnAnalyze = document.getElementById('btn-analyze');
+        const sampleBtns = document.querySelectorAll('.sample-btn');
+
+        const stateEmpty = document.getElementById('state-empty');
+        const stateLoading = document.getElementById('state-loading');
+        const stateResults = document.getElementById('state-results');
+        const stateError = document.getElementById('state-error');
+        const errorMessage = document.getElementById('error-message');
+
+        const topFoodName = document.getElementById('top-food-name');
+        const topFoodLabel = document.getElementById('top-food-label');
+        const topScoreText = document.getElementById('top-score-text');
+        const topScoreBar = document.getElementById('top-score-bar');
+        const topConfidenceDesc = document.getElementById('top-confidence-desc');
+        const serverFilenameTag = document.getElementById('server-filename-tag');
+        const candidatesCountBadge = document.getElementById('candidates-count-badge');
+        const candidatesList = document.getElementById('candidates-list');
+        const rawJsonOutput = document.getElementById('raw-json-output');
+        const toggleJson = document.getElementById('toggle-json');
+        const toggleJsonIcon = document.getElementById('toggle-json-icon');
+        const jsonViewerContainer = document.getElementById('json-viewer-container');
+        const btnCopyJson = document.getElementById('btn-copy-json');
+        const btnGotoNutrition = document.getElementById('btn-goto-nutrition');
+
+        // Camera
+        const btnCamera = document.getElementById('btn-camera');
+        const cameraModal = document.getElementById('camera-modal');
+        const btnCloseCamera = document.getElementById('btn-close-camera');
+        const btnCancelCamera = document.getElementById('btn-cancel-camera');
+        const btnSnapCamera = document.getElementById('btn-snap-camera');
+        const webcamVideo = document.getElementById('webcam-video');
+        const webcamCanvas = document.getElementById('webcam-canvas');
+        let cameraStream = null;
+
+        let currentFile = null;
+        let currentBase64 = null;
+        let lastJsonResponse = null;
+        let currentTopFood = '';
+
+        btnBrowse.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) handleFileSelect(e.target.files[0]);
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        ['dragleave', 'dragend'].forEach(type => {
+            dropZone.addEventListener(type, () => dropZone.classList.remove('dragover'));
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        btnRemoveImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetImage();
+        });
+
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('กรุณาเลือกไฟล์ที่เป็นรูปภาพเท่านั้น');
+                return;
+            }
+            currentFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentBase64 = e.target.result;
+                showImagePreview(currentBase64);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showImagePreview(src) {
+            imagePreview.src = src;
+            uploadPlaceholder.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+            btnAnalyze.disabled = false;
+            btnAnalyze.classList.remove('bg-slate-300', 'cursor-not-allowed');
+            btnAnalyze.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-amber-500', 'hover:from-orange-600', 'hover:to-amber-600', 'shadow-orange-500/25');
+        }
+
+        function resetImage() {
+            currentFile = null;
+            currentBase64 = null;
+            fileInput.value = '';
+            imagePreview.src = '';
+            previewContainer.classList.add('hidden');
+            uploadPlaceholder.classList.remove('hidden');
+            btnAnalyze.disabled = true;
+            btnAnalyze.classList.add('bg-slate-300', 'cursor-not-allowed');
+            btnAnalyze.classList.remove('bg-gradient-to-r', 'from-orange-500', 'to-amber-500', 'hover:from-orange-600', 'hover:to-amber-600', 'shadow-orange-500/25');
+        }
+
+        // Sample Presets
+        sampleBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const imgUrl = btn.getAttribute('data-url');
+                try {
+                    btnAnalyze.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> โหลดตัวอย่าง...';
+                    const res = await fetch(imgUrl);
+                    const blob = await res.blob();
+                    const file = new File([blob], 'sample.jpg', { type: 'image/jpeg' });
+                    handleFileSelect(file);
+                    btnAnalyze.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>เริ่มวิเคราะห์อาหารไทย</span>';
+                } catch (err) {
+                    alert("ไม่สามารถโหลดภาพตัวอย่างได้");
+                }
+            });
+        });
+
+        // Camera
+        btnCamera.addEventListener('click', async () => {
+            cameraModal.classList.remove('hidden');
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                webcamVideo.srcObject = cameraStream;
+            } catch (err) {
+                alert("ไม่สามารถเข้าถึงกล้องได้");
+                closeCamera();
+            }
+        });
+
+        function closeCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+            }
+            webcamVideo.srcObject = null;
+            cameraModal.classList.add('hidden');
+        }
+
+        btnCloseCamera.addEventListener('click', closeCamera);
+        btnCancelCamera.addEventListener('click', closeCamera);
+
+        btnSnapCamera.addEventListener('click', () => {
+            if (!webcamVideo.videoWidth) return;
+            webcamCanvas.width = webcamVideo.videoWidth;
+            webcamCanvas.height = webcamVideo.videoHeight;
+            const ctx = webcamCanvas.getContext('2d');
+            ctx.drawImage(webcamVideo, 0, 0, webcamCanvas.width, webcamCanvas.height);
+            const dataUrl = webcamCanvas.toDataURL('image/jpeg', 0.9);
+            currentBase64 = dataUrl;
+            currentFile = null;
+            showImagePreview(dataUrl);
+            closeCamera();
+        });
+
+        toggleJson.addEventListener('click', () => {
+            jsonViewerContainer.classList.toggle('hidden');
+            toggleJsonIcon.classList.toggle('rotate-180');
+        });
+
+        btnCopyJson.addEventListener('click', () => {
+            if (!lastJsonResponse) return;
+            navigator.clipboard.writeText(JSON.stringify(lastJsonResponse, null, 2)).then(() => {
+                const orig = btnCopyJson.innerHTML;
+                btnCopyJson.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> คัดลอกแล้ว';
+                setTimeout(() => btnCopyJson.innerHTML = orig, 2000);
+            });
+        });
+
+        // Recognize API call
+        btnAnalyze.addEventListener('click', async () => {
+            if (!currentFile && !currentBase64) return;
+
+            stateEmpty.classList.add('hidden');
+            stateResults.classList.add('hidden');
+            stateError.classList.add('hidden');
+            stateLoading.classList.remove('hidden');
+            btnAnalyze.disabled = true;
+            btnAnalyze.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังวิเคราะห์...';
+
+            try {
+                let response;
+                if (currentFile) {
+                    const formData = new FormData();
+                    formData.append('file', currentFile);
+                    response = await fetch('/api/recognize', { method: 'POST', body: formData });
+                } else {
+                    response = await fetch('/api/recognize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image_base64: currentBase64 })
+                    });
+                }
+
+                const data = await response.json();
+                lastJsonResponse = data;
+                stateLoading.classList.add('hidden');
+
+                if (!response.ok || data.OK === false || data.OK === "False") {
+                    showError(data.error || "ไม่สามารถวิเคราะห์อาหารได้");
+                    return;
+                }
+
+                renderResults(data);
+
+            } catch (err) {
+                stateLoading.classList.add('hidden');
+                showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์: " + err.message);
+            } finally {
+                btnAnalyze.disabled = false;
+                btnAnalyze.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> <span>เริ่มวิเคราะห์อาหารไทย</span>';
+            }
+        });
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            stateError.classList.remove('hidden');
+            stateEmpty.classList.add('hidden');
+            stateResults.classList.add('hidden');
+        }
+
+        function renderResults(data) {
+            rawJsonOutput.textContent = JSON.stringify(data, null, 2);
+            const objects = data.objects || [];
+            if (objects.length === 0) {
+                showError("ระบบไม่พบอาหารไทยที่ตรงกับรูปภาพนี้");
+                return;
+            }
+
+            serverFilenameTag.textContent = data.filename ? `File: ${data.filename}` : '';
+
+            const top = objects[0];
+            const score = parseFloat(top.score || 0);
+            const percent = Math.min(100, Math.round(score * 100 * 10) / 10);
+            currentTopFood = top.result || top.label;
+
+            topFoodName.textContent = currentTopFood;
+            topFoodLabel.textContent = `ป้ายกำกับ: ${top.label || top.result}`;
+            topScoreText.textContent = `${percent}% (${score.toFixed(4)})`;
+            topScoreBar.style.width = `${Math.max(5, percent)}%`;
+
+            if (score >= 0.8) {
+                topScoreBar.className = "h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700 ease-out";
+                topConfidenceDesc.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> ความมั่นใจสูงมาก (> 80%)';
+            } else if (score >= 0.1) {
+                topScoreBar.className = "h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full transition-all duration-700 ease-out";
+                topConfidenceDesc.innerHTML = '<i class="fa-solid fa-circle-question text-amber-500"></i> ความมั่นใจปานกลาง (มีคำว่า "น่าจะ")';
+            } else {
+                topScoreBar.className = "h-full bg-gradient-to-r from-rose-500 to-red-500 rounded-full transition-all duration-700 ease-out";
+                topConfidenceDesc.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-rose-500"></i> ความมั่นใจต่ำ (มีคำว่า "เดาว่า")';
+            }
+
+            candidatesCountBadge.textContent = `${objects.length} รายการ`;
+            candidatesList.innerHTML = '';
+
+            objects.forEach((item, index) => {
+                const s = parseFloat(item.score || 0);
+                const p = Math.min(100, Math.round(s * 100 * 10) / 10);
+                const r = item.rank !== undefined ? item.rank : index + 1;
+                const fName = item.result || item.label;
+
+                let scoreBadgeColor = s >= 0.8 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                                      s >= 0.1 ? "bg-amber-50 text-amber-700 border border-amber-200" :
+                                      "bg-red-50 text-red-700 border border-red-200";
+                let barColor = s >= 0.8 ? "bg-emerald-500" : s >= 0.1 ? "bg-amber-500" : "bg-red-400";
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100/80 transition-colors border border-slate-200/60 flex flex-col gap-2";
+                itemDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold shadow-xs">
+                                ${r}
+                            </span>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-800">${fName}</span>
+                                ${item.label !== item.result ? `<span class="text-xs text-slate-400 ml-1.5 font-normal">(${item.label})</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="btn-ask-candidate text-[11px] text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 transition-colors font-medium flex items-center gap-1" data-name="${fName}">
+                                <i class="fa-solid fa-heart-pulse text-[10px]"></i> ดูโภชนาการ
+                            </button>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${scoreBadgeColor}">
+                                ${p}%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full h-1.5 rounded-full bg-slate-200/70 overflow-hidden">
+                        <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${Math.max(2, p)}%"></div>
+                    </div>
+                `;
+                candidatesList.appendChild(itemDiv);
+            });
+
+            document.querySelectorAll('.btn-ask-candidate').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const name = btn.getAttribute('data-name');
+                    gotoNutritionTab(name);
+                });
+            });
+
+            stateResults.classList.remove('hidden');
+        }
+
+        btnGotoNutrition.addEventListener('click', () => {
+            if (currentTopFood) gotoNutritionTab(currentTopFood);
+        });
+
+        function gotoNutritionTab(foodName) {
+            switchTab('nutrition');
+            inputNutritionFood.value = foodName;
+            queryNutritionAdvice(foodName);
+        }
+
+        // ================= TAB 2: NUTRITION ADVISOR SCRIPT =================
+        const inputNutritionFood = document.getElementById('input-nutrition-food');
+        const btnSubmitNutrition = document.getElementById('btn-submit-nutrition');
+        const quickFoodTags = document.querySelectorAll('.quick-food-tag');
+
+        const nutritionEmpty = document.getElementById('nutrition-empty');
+        const nutritionLoading = document.getElementById('nutrition-loading');
+        const nutritionError = document.getElementById('nutrition-error');
+        const nutritionResultCard = document.getElementById('nutrition-result-card');
+        const nutritionResultTitle = document.getElementById('nutrition-result-title');
+        const nutritionMarkdownBody = document.getElementById('nutrition-markdown-body');
+        const btnSpeakNutrition = document.getElementById('btn-speak-nutrition');
+        let currentRawNutritionText = '';
+
+        btnSubmitNutrition.addEventListener('click', () => {
+            const val = inputNutritionFood.value.trim();
+            if (val) queryNutritionAdvice(val);
+        });
+
+        inputNutritionFood.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = inputNutritionFood.value.trim();
+                if (val) queryNutritionAdvice(val);
+            }
+        });
+
+        quickFoodTags.forEach(tag => {
+            tag.addEventListener('click', () => {
+                const text = tag.textContent.trim();
+                inputNutritionFood.value = text;
+                queryNutritionAdvice(text);
+            });
+        });
+
+        async function queryNutritionAdvice(foodName) {
+            nutritionEmpty.classList.add('hidden');
+            nutritionResultCard.classList.add('hidden');
+            nutritionError.classList.add('hidden');
+            nutritionLoading.classList.remove('hidden');
+
+            btnSubmitNutrition.disabled = true;
+            btnSubmitNutrition.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>กำลังคิด...</span>';
+
+            try {
+                const res = await fetch('/api/nutrition-advisor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ food_name: foodName })
+                });
+
+                const data = await res.json();
+                nutritionLoading.classList.add('hidden');
+
+                if (!res.ok || !data.OK) {
+                    nutritionError.textContent = data.error || 'ไม่สามารถวิเคราะห์ข้อมูลโภชนาการได้';
+                    nutritionError.classList.remove('hidden');
+                    return;
+                }
+
+                currentRawNutritionText = data.advice;
+                nutritionResultTitle.textContent = data.food_name;
+                if (window.marked) {
+                    nutritionMarkdownBody.innerHTML = marked.parse(data.advice);
+                } else {
+                    nutritionMarkdownBody.textContent = data.advice;
+                }
+
+                nutritionResultCard.classList.remove('hidden');
+
+            } catch (err) {
+                nutritionLoading.classList.add('hidden');
+                nutritionError.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ ThaiLLM: ' + err.message;
+                nutritionError.classList.remove('hidden');
+            } finally {
+                btnSubmitNutrition.disabled = false;
+                btnSubmitNutrition.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i><span>วิเคราะห์</span>';
+            }
+        }
+
+        // Bridge from Tab 2 to Tab 3 (Speak Nutrition text)
+        btnSpeakNutrition.addEventListener('click', () => {
+            const food = nutritionResultTitle.textContent || '';
+            // Make concise spoken sentence
+            const firstSentence = currentRawNutritionText.replace(/[*#]/g, '').slice(0, 180);
+            const speakText = `ข้อมูลโภชนาการของ ${food}: ${firstSentence}`;
+            
+            switchTab('vaja');
+            vajaTextInput.value = speakText;
+            synthesizeVajaAudio(speakText);
+        });
+
+        // ================= TAB 3: VAJA TEXT-TO-SPEECH SCRIPT =================
+        const vajaTextInput = document.getElementById('vaja-text-input');
+        const vajaSpeaker = document.getElementById('vaja-speaker');
+        const btnSynthesizeVaja = document.getElementById('btn-synthesize-vaja');
+        const vajaSampleBtns = document.querySelectorAll('.vaja-sample-btn');
+
+        const vajaLoading = document.getElementById('vaja-loading');
+        const vajaError = document.getElementById('vaja-error');
+        const vajaResultCard = document.getElementById('vaja-result-card');
+        const vajaAudioPlayer = document.getElementById('vaja-audio-player');
+        const vajaDownloadBtn = document.getElementById('vaja-download-btn');
+        const vajaStatusBadge = document.getElementById('vaja-status-badge');
+        const vajaSpeakerLabel = document.getElementById('vaja-speaker-label');
+
+        const toggleVajaJson = document.getElementById('toggle-vaja-json');
+        const toggleVajaJsonIcon = document.getElementById('toggle-vaja-json-icon');
+        const vajaJsonContainer = document.getElementById('vaja-json-container');
+        const vajaRawJson = document.getElementById('vaja-raw-json');
+        const btnCopyVajaJson = document.getElementById('btn-copy-vaja-json');
+        let lastVajaResponse = null;
+
+        vajaSampleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const t = btn.getAttribute('data-text');
+                vajaTextInput.value = t;
+            });
+        });
+
+        btnSynthesizeVaja.addEventListener('click', () => {
+            const text = vajaTextInput.value.trim();
+            if (!text) {
+                alert('กรุณาระบุข้อความที่ต้องการสังเคราะห์เสียง');
+                return;
+            }
+            synthesizeVajaAudio(text);
+        });
+
+        async function synthesizeVajaAudio(text) {
+            const speaker = vajaSpeaker.value || 'nana';
+
+            vajaResultCard.classList.add('hidden');
+            vajaError.classList.add('hidden');
+            vajaLoading.classList.remove('hidden');
+
+            btnSynthesizeVaja.disabled = true;
+            btnSynthesizeVaja.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>กำลังสร้างเสียง...</span>';
+
+            try {
+                const res = await fetch('/api/vaja', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, speaker: speaker })
+                });
+
+                const data = await res.json();
+                lastVajaResponse = data;
+                vajaLoading.classList.add('hidden');
+
+                if (!res.ok || data.msg === 'error' || !data.audio_url) {
+                    vajaError.textContent = data.error || 'เกิดข้อผิดพลาดในการสังเคราะห์เสียงจาก VAJA';
+                    vajaError.classList.remove('hidden');
+                    return;
+                }
+
+                // Render result
+                vajaSpeakerLabel.textContent = `ผู้พูด: ${speaker}`;
+                vajaStatusBadge.textContent = `msg: ${data.msg || 'success'}`;
+                
+                // Use proxy url to ensure seamless playback without CORS/header issues
+                const proxyUrl = `/api/vaja/proxy?url=${encodeURIComponent(data.audio_url)}`;
+                vajaAudioPlayer.src = proxyUrl;
+                vajaDownloadBtn.href = proxyUrl;
+                
+                // Raw JSON
+                vajaRawJson.textContent = JSON.stringify(data, null, 2);
+
+                vajaResultCard.classList.remove('hidden');
+                vajaAudioPlayer.play().catch(e => console.log('Autoplay prevented by browser:', e));
+
+            } catch (err) {
+                vajaLoading.classList.add('hidden');
+                vajaError.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์: ' + err.message;
+                vajaError.classList.remove('hidden');
+            } finally {
+                btnSynthesizeVaja.disabled = false;
+                btnSynthesizeVaja.innerHTML = '<i class="fa-solid fa-volume-high"></i><span>สังเคราะห์เสียงพูด (Synthesize Audio)</span>';
+            }
+        }
+
+        toggleVajaJson.addEventListener('click', () => {
+            vajaJsonContainer.classList.toggle('hidden');
+            toggleVajaJsonIcon.classList.toggle('rotate-180');
+        });
+
+        btnCopyVajaJson.addEventListener('click', () => {
+            if (!lastVajaResponse) return;
+            navigator.clipboard.writeText(JSON.stringify(lastVajaResponse, null, 2)).then(() => {
+                const prev = btnCopyVajaJson.innerHTML;
+                btnCopyVajaJson.innerHTML = '<i class="fa-solid fa-check text-blue-500"></i> คัดลอกแล้ว';
+                setTimeout(() => btnCopyVajaJson.innerHTML = prev, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
